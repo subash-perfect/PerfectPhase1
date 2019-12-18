@@ -1,10 +1,12 @@
 import PerfectHTTP
 import PerfectHTTPServer
 import PerfectLib
-
+import PerfectMustache
 
 let server = HTTPServer()
 server.serverPort = 8080
+server.documentRoot = "webroot"
+
 
 struct Person: Codable {
     var name: String
@@ -26,6 +28,32 @@ func returnJsonMessage(message: String, response: HTTPResponse) {
 }
 
 var routes = Routes()
+
+routes.add(method: .get, uri: "/helloMustache") { (request,response) in
+    var values = MustacheEvaluationContext.MapType()
+    values["name"] = "Subash"
+    mustacheRequest(request: request, response: response, handler: MustacheHandler(values: values), templatePath: request.documentRoot + "/hello.mustache")
+}
+
+routes.add(method: .get, uri: "/helloMustache/{name}") { (request,response) in
+    guard let name = request.urlVariables["name"] else {
+        response.completed(status: .badRequest)
+        return
+    }
+    var values = MustacheEvaluationContext.MapType()
+    values["name"] = name
+    mustacheRequest(request: request, response: response, handler: MustacheHandler(values: values), templatePath: request.documentRoot + "/hello.mustache")
+}
+
+routes.add(method: .get, uri: "/helloMustacheCollection") { (request,response) in
+    var values = MustacheEvaluationContext.MapType()
+    values["users"] = [
+        ["name": "Subash", "email": "a@gmail.com"],
+        ["name": "suji", "email": "b@gmail.com"]
+    ]
+    mustacheRequest(request: request, response: response, handler: MustacheHandler(values: values), templatePath: request.documentRoot + "/helloCollection.mustache")
+}
+
 
 routes.add(method: .get, uri: "/person") { (request, response) in
     let person = Person(name: "Subash", age: 29, description: "Cool guy!!!")
