@@ -4,3 +4,5 @@
 /*.xcodeproj
 /Package.swift.orig
 /.idea
+/Package.resolved
+
